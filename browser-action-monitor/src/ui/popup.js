@@ -40,6 +40,15 @@ function downloadBlob(filename, blob) {
   URL.revokeObjectURL(url);
 }
 
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
 async function runWithButtonState(button, pendingMessage, action) {
   const previousDisabled = button.disabled;
   button.disabled = true;
@@ -52,53 +61,48 @@ async function runWithButtonState(button, pendingMessage, action) {
   }
 }
 
-function renderAttachmentStatus(stats = {}) {
-  const domMode = stats.attachments?.domSnapshots?.mode || "enabled";
-  const domReason = stats.attachments?.domSnapshots?.reason || "";
-  const screenshotMode = stats.attachments?.screenshots?.mode || "enabled";
-  const screenshotReason = stats.attachments?.screenshots?.reason || "";
+function resolveAttachmentEnabled(settingValue, runtimeMode) {
+  if (runtimeMode === "enabled") {
+    return true;
+  }
+
+  if (runtimeMode === "disabled") {
+    return false;
+  }
+
+  return settingValue !== false;
+}
+
+function renderStatusChip(label, isEnabled) {
+  const stateLabel = isEnabled ? "开启" : "关闭";
+  const dotClass = isEnabled ? "status-dot is-on" : "status-dot is-off";
+  return `<span class="status-chip"><span class="${dotClass}"></span>${escapeHtml(label)} ${stateLabel}</span>`;
+}
+
+function renderMetricChip(label, value) {
+  return `<span class="status-chip metric">${escapeHtml(label)} ${escapeHtml(value)}</span>`;
+}
+
+function renderAttachmentStatus(settings = {}, stats = {}) {
   const health = stats.attachments?.health || {};
+  const domEnabled = resolveAttachmentEnabled(
+    settings.captureDomSnapshots,
+    stats.attachments?.domSnapshots?.mode
+  );
+  const screenshotEnabled = resolveAttachmentEnabled(
+    settings.captureScreenshots,
+    stats.attachments?.screenshots?.mode
+  );
 
-  document.getElementById("attachmentStatus").textContent = [
-    `DOM: ${domMode}${domReason ? ` (${domReason})` : ""}`,
-    `截图: ${screenshotMode}${screenshotReason ? ` (${screenshotReason})` : ""}`,
-    `队列 ${health.screenshotQueueSize || 0}`,
-    `存储 ${formatStorageInMb(health.screenshotStorageBytes)}`
-  ].join(" | ");
+  document.getElementById("attachmentStatus").innerHTML = [
+    renderStatusChip("DOM", domEnabled),
+    renderStatusChip("截图", screenshotEnabled),
+    renderMetricChip("队列", String(health.screenshotQueueSize || 0)),
+    renderMetricChip("存储", formatStorageInMb(health.screenshotStorageBytes))
+  ].join("");
 }
 
-async function refreshAttachmentToggles() {
-  const response = await sendMessage("getSettings");
-  if (!response?.success) {
-    setFeedback(response?.error || "读取设置失败", true);
-    return;
-  }
-
-  document.getElementById("domSnapshotsToggle").checked = response.settings.captureDomSnapshots !== false;
-  document.getElementById("screenshotsToggle").checked = response.settings.captureScreenshots !== false;
-}
-
-async function saveAttachmentSettings(patch) {
-  const current = await sendMessage("getSettings");
-  if (!current?.success) {
-    setFeedback(current?.error || "读取设置失败", true);
-    return false;
-  }
-
-  const response = await sendMessage("saveSettings", {
-    ...current.settings,
-    ...patch
-  });
-
-  if (!response?.success) {
-    setFeedback(response?.error || "保存设置失败", true);
-    return false;
-  }
-
-  return true;
-}
-
-function updateView(stats) {
+function updateView(stats = {}, settings = {}) {
   document.getElementById("sessionId").textContent = stats.sessionId || "-";
   document.getElementById("actionCount").textContent = String(stats.actionCount || 0);
   document.getElementById("startedAt").textContent = formatDate(stats.startedAt);
@@ -112,19 +116,23 @@ function updateView(stats) {
   document.getElementById("syncBadge").textContent = stats.sync?.enabled ? "远程同步已启用" : "仅本地模式";
   document.getElementById("startBtn").disabled = isRecording;
   document.getElementById("pauseBtn").disabled = !isRecording;
-  renderAttachmentStatus(stats);
+  renderAttachmentStatus(settings, stats);
 }
 
 async function refreshStats(preserveFeedback = false) {
-  await refreshAttachmentToggles();
-
-  const response = await sendMessage("getStats");
-  if (!response?.success) {
-    setFeedback(response?.error || "刷新状态失败", true);
+  const settingsResponse = await sendMessage("getSettings");
+  if (!settingsResponse?.success) {
+    setFeedback(settingsResponse?.error || "读取设置失败", true);
     return;
   }
 
-  updateView(response.stats);
+  const statsResponse = await sendMessage("getStats");
+  if (!statsResponse?.success) {
+    setFeedback(statsResponse?.error || "刷新状态失败", true);
+    return;
+  }
+
+  updateView(statsResponse.stats, settingsResponse.settings);
   if (!preserveFeedback) {
     setFeedback("");
   }
@@ -262,36 +270,6 @@ document.getElementById("clearBtn").addEventListener("click", async (event) => {
     setFeedback("本地数据已清空");
     await refreshStats(true);
   });
-});
-
-document.getElementById("domSnapshotsToggle").addEventListener("change", async (event) => {
-  const toggle = event.currentTarget;
-  const nextChecked = toggle.checked;
-  const success = await saveAttachmentSettings({
-    captureDomSnapshots: nextChecked
-  });
-  if (!success) {
-    toggle.checked = !nextChecked;
-    return;
-  }
-
-  setFeedback(`DOM 快照已${nextChecked ? "开启" : "关闭"}`);
-  await refreshStats(true);
-});
-
-document.getElementById("screenshotsToggle").addEventListener("change", async (event) => {
-  const toggle = event.currentTarget;
-  const nextChecked = toggle.checked;
-  const success = await saveAttachmentSettings({
-    captureScreenshots: nextChecked
-  });
-  if (!success) {
-    toggle.checked = !nextChecked;
-    return;
-  }
-
-  setFeedback(`动作截图已${nextChecked ? "开启" : "关闭"}`);
-  await refreshStats(true);
 });
 
 void refreshStats();

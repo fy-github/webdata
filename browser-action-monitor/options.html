@@ -163,7 +163,7 @@
   <div class="shell">
     <section class="panel">
       <h1>Browser Action Monitor 设置</h1>
-      <p>控制浏览器操作采集、隐私保护、远程同步，以及后台补偿 v2 的并发、退避和运行时感知策略。</p>
+      <p>控制浏览器操作采集、隐私保护、附件采集、远程同步，以及后台补偿的并发、退避和运行时感知策略。</p>
     </section>
 
     <section class="panel">
@@ -197,6 +197,21 @@
         </div>
       </div>
       <div class="hint">开启后会优先脱敏输入值和敏感字段；关闭后按原始值记录，适合在受控测试环境里采集更完整样本。</div>
+    </section>
+
+    <section class="panel">
+      <h2>附件采集</h2>
+      <div class="grid">
+        <div class="toggle">
+          <label for="captureDomSnapshots">DOM 快照</label>
+          <input id="captureDomSnapshots" type="checkbox">
+        </div>
+        <div class="toggle">
+          <label for="captureScreenshots">动作截图</label>
+          <input id="captureScreenshots" type="checkbox">
+        </div>
+      </div>
+      <div class="hint">这里控制是否采集 DOM 快照和动作截图。弹窗只展示实时状态，不再直接修改这两个开关。</div>
     </section>
 
     <section class="panel">

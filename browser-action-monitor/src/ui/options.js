@@ -38,6 +38,8 @@ function getFormValues() {
     scrollThrottleMs: getNumberValue("scrollThrottleMs", DEFAULT_SETTINGS.scrollThrottleMs),
     mousemoveThrottleMs: getNumberValue("mousemoveThrottleMs", DEFAULT_SETTINGS.mousemoveThrottleMs),
     privacyEnabled: document.getElementById("privacyEnabled").checked,
+    captureDomSnapshots: document.getElementById("captureDomSnapshots").checked,
+    captureScreenshots: document.getElementById("captureScreenshots").checked,
     serverUrl: document.getElementById("serverUrl").value.trim(),
     authMode: document.getElementById("authMode").value,
     apiKey: document.getElementById("apiKey").value.trim(),
@@ -74,6 +76,8 @@ function fillForm(settings) {
   document.getElementById("scrollThrottleMs").value = String(settings.scrollThrottleMs);
   document.getElementById("mousemoveThrottleMs").value = String(settings.mousemoveThrottleMs);
   document.getElementById("privacyEnabled").checked = settings.privacyEnabled;
+  document.getElementById("captureDomSnapshots").checked = settings.captureDomSnapshots !== false;
+  document.getElementById("captureScreenshots").checked = settings.captureScreenshots !== false;
   document.getElementById("serverUrl").value = settings.serverUrl;
   document.getElementById("authMode").value = settings.authMode;
   document.getElementById("apiKey").value = settings.apiKey;
@@ -133,7 +137,7 @@ document.getElementById("saveBtn").addEventListener("click", async () => {
 document.getElementById("resetBtn").addEventListener("click", () => {
   fillForm(DEFAULT_SETTINGS);
   updateAuthModeHint();
-  setStatus("已恢复为默认值，点击“保存设置”后生效。");
+  setStatus("已恢复默认值，点击“保存设置”后生效。");
 });
 
 void loadSettings();
