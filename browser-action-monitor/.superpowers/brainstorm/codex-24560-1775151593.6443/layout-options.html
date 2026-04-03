@@ -1,0 +1,108 @@
+<h2>二期 Dashboard 布局方向</h2>
+<p class="subtitle">目标是服务端读写后台：浏览、搜索、删除、标签管理、批量操作、导出。看哪一种更符合你的工作流。</p>
+
+<div class="cards">
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">A. 三栏运营台</div>
+        <div class="mockup-body">
+          <div class="mock-nav">Browser Action Monitor | Dashboard | Exports | Settings</div>
+          <div style="display:flex; gap:10px; min-height:260px;">
+            <div class="mock-sidebar" style="width:23%;">项目 / 标签 / 状态过滤<br><br>批量操作入口</div>
+            <div class="mock-content" style="width:42%;">
+              会话列表<br><br>
+              [ ] ses_001<br>
+              [ ] ses_002<br>
+              [ ] ses_003<br><br>
+              搜索栏 + 排序
+            </div>
+            <div class="mock-content" style="width:35%;">
+              当前会话详情<br><br>
+              动作时间线<br>
+              标签编辑<br>
+              删除 / 导出
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A. 三栏运营台</h3>
+      <p>适合高频筛选、批量处理和快速切换会话，信息密度高，偏“工作台”。</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">B. 主列表 + 右侧详情抽屉</div>
+        <div class="mockup-body">
+          <div class="mock-nav">Browser Action Monitor | Sessions | Actions | Exports</div>
+          <div class="mock-content" style="min-height:260px;">
+            顶部：搜索 / 状态筛选 / 标签筛选 / 批量工具条
+            <div class="placeholder" style="margin-top:12px;">
+              大表格：Session ID / 时间 / 动作数 / 标签 / 同步状态
+            </div>
+            <div style="display:flex; gap:10px; margin-top:12px;">
+              <button class="mock-button">批量打标签</button>
+              <button class="mock-button">批量导出</button>
+              <button class="mock-button">批量删除</button>
+            </div>
+            <div class="placeholder" style="margin-top:12px;">点击某行后，右侧滑出详情抽屉，查看动作和单条操作</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B. 主列表 + 抽屉</h3>
+      <p>更像标准后台，学习成本低，适合先做稳定首版，再逐步加功能。</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">C. 双层后台</div>
+        <div class="mockup-body">
+          <div class="mock-nav">Overview | Sessions | Review Queue | Dataset Builder</div>
+          <div style="display:flex; gap:10px; min-height:260px;">
+            <div class="mock-content" style="width:60%;">
+              上半区：会话总览统计、最近上传、标签分布
+              <div class="placeholder" style="margin-top:12px;">下半区：待处理队列 / 可疑记录 / 最近批量任务</div>
+            </div>
+            <div class="mock-sidebar" style="width:40%;">
+              右侧固定面板：<br><br>
+              当前筛选条件<br>
+              批量任务状态<br>
+              快捷导出模板
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C. 双层后台</h3>
+      <p>面向后续平台化扩展，空间大，但首版最容易做重，复杂度也最高。</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="pros-cons">
+    <div class="pros">
+      <h4>我的建议</h4>
+      <ul>
+        <li>优先选 B，如果你要一个最快稳定落地的后台。</li>
+        <li>优先选 A，如果你明确希望高密度操作和批量处理更顺手。</li>
+      </ul>
+    </div>
+    <div class="cons">
+      <h4>不建议首版直接选 C 的原因</h4>
+      <ul>
+        <li>需要更多导航层级和更多状态面板。</li>
+        <li>会把二期从“后台”拉成“小平台”。</li>
+      </ul>
+    </div>
+  </div>
+</div>

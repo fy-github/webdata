@@ -1,0 +1,47 @@
+=D:\docker\webdata\browser-action-monitor\.superpowers\brainstorm\codex-29484-1775151529.64541 : 无法将“=D:\docker\web
+data\browser-action-monitor\.superpowers\brainstorm\codex-29484-1775151529.64541”项识别为 cmdlet、函数、脚本文件或可运
+行程序的名称。请检查名称的拼写，如果包括路径，请确保路径正确，然后再试一次。
+所在位置 行:1 字符: 1
++ ='D:\docker\webdata\browser-action-monitor\.superpowers\brainstorm\co ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (=D:\docker\webd...775151529.64541:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+=127.0.0.1 : 无法将“=127.0.0.1”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括路径，请
+确保路径正确，然后再试一次。
+所在位置 行:1 字符: 99
++ ... powers\brainstorm\codex-29484-1775151529.64541'; ='127.0.0.1'; ='loca ...
++                                                      ~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (=127.0.0.1:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+=localhost : 无法将“=localhost”项识别为 cmdlet、函数、脚本文件或可运行程序的名称。请检查名称的拼写，如果包括路径，请
+确保路径正确，然后再试一次。
+所在位置 行:1 字符: 113
++ ... orm\codex-29484-1775151529.64541'; ='127.0.0.1'; ='localhost'; node ' ...
++                                                      ~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (=localhost:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+node:fs:1349
+  const result = binding.mkdir(
+                         ^
+
+Error: EPERM: operation not permitted, mkdir 'C:\tmp\brainstorm'
+    at Object.mkdirSync (node:fs:1349:26)
+    at startServer (C:\Users\17710\.codex\superpowers\skills\brainstorming\scripts\server.js:261:38)
+    at Object.<anonymous> (C:\Users\17710\.codex\superpowers\skills\brainstorming\scripts\server.js:335:3)
+    at Module._compile (node:internal/modules/cjs/loader:1812:14)
+    at Object..js (node:internal/modules/cjs/loader:1943:10)
+    at Module.load (node:internal/modules/cjs/loader:1533:32)
+    at Module._load (node:internal/modules/cjs/loader:1335:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+    at node:internal/main/run_main_module:33:47 {
+  errno: -4048,
+  code: 'EPERM',
+  syscall: 'mkdir',
+  path: 'C:\\tmp\\brainstorm'
+}
+
+Node.js v24.14.1

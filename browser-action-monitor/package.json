@@ -1,0 +1,18 @@
+{
+  "name": "browser-action-monitor",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test --test-concurrency=1 --test-isolation=none tests/**/*.test.js",
+    "release:pack": "node scripts/package-release.mjs",
+    "start:server": "node scripts/server-manager.mjs start",
+    "start:server:foreground": "node server/index.js",
+    "server:stop": "node scripts/server-manager.mjs stop",
+    "server:restart": "node scripts/server-manager.mjs restart",
+    "server:status": "node scripts/server-manager.mjs status"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Browser Action Monitor Dashboard</title>
+  <link rel="stylesheet" href="/dashboard-assets/dashboard.css">
+</head>
+<body>
+  <div class="page">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Server Dashboard</p>
+        <h1>Browser Action Monitor Dashboard</h1>
+      </div>
+      <div class="topbar-actions">
+        <button class="ghost" id="refreshButton" type="button">Refresh</button>
+      </div>
+    </header>
+
+    <section class="feedback hidden" id="feedbackBar" aria-live="polite"></section>
+
+    <section class="filters">
+      <input id="searchInput" type="search" placeholder="Search by session ID, URL, or tag">
+      <select id="tagFilter">
+        <option value="">All tags</option>
+      </select>
+      <select id="statusFilter">
+        <option value="">All status</option>
+        <option value="active">active</option>
+        <option value="completed">completed</option>
+      </select>
+      <input id="dateFromInput" type="number" placeholder="Started after">
+      <input id="dateToInput" type="number" placeholder="Started before">
+      <button id="applyFiltersButton" type="button">Apply filters</button>
+      <button class="ghost" id="resetFiltersButton" type="button">Reset</button>
+    </section>
+
+    <section class="batchbar hidden" id="batchBar">
+      <span id="selectedCount">Selected 0 sessions</span>
+      <button type="button" id="batchTagButton">Tag selected</button>
+      <select id="batchExportFormatSelect">
+        <option value="plain-json">Session JSON</option>
+        <option value="agent-json">Agent JSON</option>
+        <option value="agent-zip">Agent ZIP</option>
+      </select>
+      <button type="button" id="batchExportButton">Export selected</button>
+      <button class="danger" type="button" id="batchDeleteButton">Delete selected</button>
+    </section>
+
+    <main class="layout">
+      <section class="card table-card">
+        <div class="table-scroll">
+          <table class="sessions-table">
+            <colgroup>
+              <col class="col-select">
+              <col class="col-session">
+              <col class="col-time">
+              <col class="col-count">
+              <col class="col-tags">
+              <col class="col-status">
+              <col class="col-url">
+            </colgroup>
+            <thead>
+              <tr>
+                <th><input id="selectAllCheckbox" type="checkbox" aria-label="Select all sessions"></th>
+                <th>Session</th>
+                <th>Started</th>
+                <th>Actions</th>
+                <th>Tags</th>
+                <th>Status</th>
+                <th>Last URL</th>
+              </tr>
+            </thead>
+            <tbody id="sessionsBody"></tbody>
+          </table>
+        </div>
+        <footer class="table-footer">
+          <span id="paginationSummary">Total 0 sessions</span>
+          <div class="pagination">
+            <button class="ghost" id="prevPageButton" type="button">Previous</button>
+            <button class="ghost" id="nextPageButton" type="button">Next</button>
+          </div>
+        </footer>
+      </section>
+
+      <aside class="card drawer hidden" id="drawer">
+        <div class="drawer-header">
+          <div>
+            <p class="eyebrow">Session Detail</p>
+            <h2 id="drawerTitle">Select a session</h2>
+          </div>
+          <button class="ghost" id="closeDrawerButton" type="button">Close</button>
+        </div>
+
+        <div id="drawerMeta" class="drawer-meta">Select a session to inspect actions, attachment coverage, and exports.</div>
+
+        <div class="tag-editor">
+          <input id="tagEditorInput" type="text" placeholder="Comma separated tags">
+          <button type="button" id="saveTagsButton">Save tags</button>
+        </div>
+
+        <div class="drawer-actions">
+          <select id="exportFormatSelect">
+            <option value="plain-json">Session JSON</option>
+            <option value="plain-zip">Session ZIP</option>
+            <option value="agent-json">Agent JSON</option>
+            <option value="agent-zip">Agent ZIP</option>
+          </select>
+          <button type="button" id="exportSessionButton">Export session</button>
+          <button class="danger" type="button" id="deleteSessionButton">Delete session</button>
+        </div>
+
+        <div class="drawer-scroll">
+          <section class="actions-list">
+            <h3>Actions</h3>
+            <div id="actionsList"></div>
+          </section>
+
+          <section class="attachment-panel">
+            <h3>Attachments</h3>
+            <div id="attachmentSummary" class="attachment-summary muted">Select an action to inspect DOM snapshot and screenshot status.</div>
+            <div class="attachment-preview-frame">
+              <img id="attachmentPreview" class="attachment-preview hidden" alt="Action screenshot preview">
+              <div id="attachmentPreviewEmpty" class="attachment-preview-empty muted">No remote screenshot preview for the selected action.</div>
+            </div>
+          </section>
+
+          <section class="action-detail">
+            <h3>Action JSON</h3>
+            <pre id="actionDetail">Select an action to inspect its normalized payload.</pre>
+          </section>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <script>
+    window.DASHBOARD_CONFIG = {
+      initialSessionId: __INITIAL_SESSION_ID__,
+      authMode: __AUTH_MODE__,
+      apiKey: __API_KEY__
+    };
+  </script>
+  <script type="module" src="/dashboard-assets/dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Browser Action Monitor 设置</title>
+  <style>
+    :root {
+      --primary: #3b82f6;
+      --accent: #10b981;
+      --panel: #ffffff;
+      --border: #d9e4f2;
+      --text: #0f172a;
+      --muted: #64748b;
+      --bg: linear-gradient(180deg, #f5f9ff 0%, #ebf3ff 100%);
+      --danger: #dc2626;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 28px 18px 40px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    .shell {
+      max-width: 1040px;
+      margin: 0 auto;
+      display: grid;
+      gap: 18px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 22px;
+      box-shadow: 0 18px 36px rgba(15, 23, 42, 0.07);
+    }
+
+    h1,
+    h2 {
+      margin: 0 0 14px;
+    }
+
+    p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    .field label,
+    .toggle label {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    input,
+    select {
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font: inherit;
+      background: #ffffff;
+    }
+
+    input[type="checkbox"] {
+      width: auto;
+      transform: scale(1.15);
+    }
+
+    .toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: #f8fbff;
+    }
+
+    .hint {
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 12px;
+      padding: 11px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    .primary {
+      background: var(--primary);
+      color: #ffffff;
+    }
+
+    .secondary {
+      background: #e2e8f0;
+      color: var(--text);
+    }
+
+    #status {
+      min-height: 22px;
+      margin-top: 12px;
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    #status[data-error="true"] {
+      color: var(--danger);
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 18px 14px 28px;
+      }
+
+      .panel {
+        padding: 18px;
+        border-radius: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="panel">
+      <h1>Browser Action Monitor 设置</h1>
+      <p>控制浏览器操作采集、隐私保护、远程同步，以及后台补偿 v2 的并发、退避和运行时感知策略。</p>
+    </section>
+
+    <section class="panel">
+      <h2>采集事件</h2>
+      <div class="grid">
+        <div class="toggle"><label for="captureClicks">点击</label><input id="captureClicks" type="checkbox"></div>
+        <div class="toggle"><label for="captureInput">输入</label><input id="captureInput" type="checkbox"></div>
+        <div class="toggle"><label for="captureChange">变更</label><input id="captureChange" type="checkbox"></div>
+        <div class="toggle"><label for="captureSubmit">提交</label><input id="captureSubmit" type="checkbox"></div>
+        <div class="toggle"><label for="captureNavigation">导航</label><input id="captureNavigation" type="checkbox"></div>
+        <div class="toggle"><label for="captureScroll">滚动</label><input id="captureScroll" type="checkbox"></div>
+        <div class="toggle"><label for="captureKeydown">键盘按下</label><input id="captureKeydown" type="checkbox"></div>
+        <div class="toggle"><label for="captureMousemove">鼠标移动</label><input id="captureMousemove" type="checkbox"></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>采集与隐私</h2>
+      <div class="grid">
+        <div class="field">
+          <label for="scrollThrottleMs">滚动节流（毫秒）</label>
+          <input id="scrollThrottleMs" type="number" min="0" step="50">
+        </div>
+        <div class="field">
+          <label for="mousemoveThrottleMs">鼠标移动节流（毫秒）</label>
+          <input id="mousemoveThrottleMs" type="number" min="0" step="100">
+        </div>
+        <div class="toggle">
+          <label for="privacyEnabled">启用隐私保护</label>
+          <input id="privacyEnabled" type="checkbox">
+        </div>
+      </div>
+      <div class="hint">开启后会优先脱敏输入值和敏感字段；关闭后按原始值记录，适合在受控测试环境里采集更完整样本。</div>
+    </section>
+
+    <section class="panel">
+      <h2>远程同步</h2>
+      <div class="grid">
+        <div class="field">
+          <label for="serverUrl">服务端地址</label>
+          <input id="serverUrl" type="url" placeholder="http://127.0.0.1:3000">
+        </div>
+        <div class="field">
+          <label for="authMode">鉴权模式</label>
+          <select id="authMode">
+            <option value="none">不鉴权</option>
+            <option value="apiKey">固定 API Key</option>
+          </select>
+        </div>
+        <div class="field" id="apiKeyRow">
+          <label for="apiKey">API Key</label>
+          <input id="apiKey" type="text" placeholder="输入固定 API Key">
+        </div>
+        <div class="field">
+          <label for="syncBatchSize">单批上传动作数</label>
+          <input id="syncBatchSize" type="number" min="1" step="1">
+        </div>
+      </div>
+      <div class="hint">服务端地址留空时仅本地记录，不会上报任何数据。</div>
+    </section>
+
+    <section class="panel">
+      <h2>后台补偿</h2>
+      <div class="grid">
+        <div class="toggle">
+          <label for="backgroundSyncEnabled">启用后台自动补偿</label>
+          <input id="backgroundSyncEnabled" type="checkbox">
+        </div>
+        <div class="field">
+          <label for="backgroundSyncIntervalMinutes">定时补偿间隔（分钟）</label>
+          <input id="backgroundSyncIntervalMinutes" type="number" min="1" step="1">
+        </div>
+        <div class="toggle">
+          <label for="syncOnStartup">扩展启动时尝试补偿</label>
+          <input id="syncOnStartup" type="checkbox">
+        </div>
+        <div class="field">
+          <label for="maxConcurrentSessionSyncs">会话并发上限</label>
+          <input id="maxConcurrentSessionSyncs" type="number" min="1" step="1">
+        </div>
+        <div class="toggle">
+          <label for="syncBackoffEnabled">启用失败指数退避</label>
+          <input id="syncBackoffEnabled" type="checkbox">
+        </div>
+        <div class="field">
+          <label for="maxSyncBackoffMinutes">最大退避时长（分钟）</label>
+          <input id="maxSyncBackoffMinutes" type="number" min="1" step="1">
+        </div>
+        <div class="toggle">
+          <label for="idleGateEnabled">启用空闲态感知</label>
+          <input id="idleGateEnabled" type="checkbox">
+        </div>
+        <div class="toggle">
+          <label for="batteryAwareSyncEnabled">启用电量感知</label>
+          <input id="batteryAwareSyncEnabled" type="checkbox">
+        </div>
+      </div>
+      <div class="hint">自动补偿会扫描所有仍有 pending 或 failed 动作的本地会话，并在空闲态、电量状态和退避窗口允许时分批重试。手动重试不受这些限制。</div>
+      <div class="actions">
+        <button class="primary" id="saveBtn">保存设置</button>
+        <button class="secondary" id="resetBtn">恢复默认</button>
+      </div>
+      <div id="status" data-error="false"></div>
+    </section>
+  </div>
+
+  <script type="module" src="./src/ui/options.js"></script>
+</body>
+</html>

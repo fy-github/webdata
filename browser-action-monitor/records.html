@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Browser Action Monitor Records</title>
+  <style>
+    :root {
+      --primary: #3b82f6;
+      --panel: #ffffff;
+      --border: #dbe5f0;
+      --text: #0f172a;
+      --muted: #64748b;
+      --bg: linear-gradient(180deg, #eef5ff 0%, #f8fafc 100%);
+      --danger: #dc2626;
+      --warning: #d97706;
+      --success: #059669;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 24px 18px 40px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    .shell {
+      max-width: 1240px;
+      margin: 0 auto;
+      display: grid;
+      gap: 16px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 20px 40px rgba(15, 23, 42, 0.06);
+    }
+
+    h1,
+    h2 {
+      margin: 0 0 14px;
+    }
+
+    .lead,
+    .muted {
+      color: var(--muted);
+    }
+
+    .lead {
+      line-height: 1.6;
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .filters > * {
+      min-width: 0;
+    }
+
+    .filters label {
+      display: grid;
+      gap: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      min-width: 0;
+    }
+
+    input,
+    select,
+    button {
+      font: inherit;
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+
+    input,
+    select {
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      color: var(--text);
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    .filter-actions {
+      display: flex;
+      gap: 10px;
+      align-items: end;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: 0;
+      background: var(--primary);
+      color: #ffffff;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 10px 24px rgba(59, 130, 246, 0.18);
+    }
+
+    button.secondary {
+      background: #e2e8f0;
+      color: var(--text);
+      box-shadow: none;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+    }
+
+    .summary-card {
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 14px 16px;
+      background: linear-gradient(180deg, #fbfdff 0%, #f3f7fc 100%);
+    }
+
+    .summary-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .summary-value {
+      display: block;
+      margin-top: 6px;
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .summary-value.pending {
+      color: var(--warning);
+    }
+
+    .summary-value.failed {
+      color: var(--danger);
+    }
+
+    .summary-value.synced {
+      color: var(--success);
+    }
+
+    .summary-meta {
+      margin-top: 4px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .table-scroll {
+      overflow: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      table-layout: fixed;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 12px 10px;
+      border-bottom: 1px solid #e2e8f0;
+      vertical-align: top;
+      word-break: break-word;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    tbody tr {
+      cursor: pointer;
+      transition: background 120ms ease;
+    }
+
+    tbody tr:hover {
+      background: #f8fbff;
+    }
+
+    tbody tr.active {
+      background: #eef5ff;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 72px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .status-pending {
+      background: #fff7ed;
+      color: var(--warning);
+    }
+
+    .status-failed {
+      background: #fef2f2;
+      color: var(--danger);
+    }
+
+    .status-synced {
+      background: #ecfdf5;
+      color: var(--success);
+    }
+
+    .empty {
+      padding: 28px 12px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .attachment-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #eff6ff;
+      color: var(--primary);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .attachment-block {
+      margin-bottom: 14px;
+      padding: 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      background: #f8fbff;
+    }
+
+    .attachment-title {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .attachment-preview {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid #dbe5f0;
+      background: #ffffff;
+      min-height: 120px;
+      object-fit: contain;
+    }
+
+    .detail-panel {
+      position: sticky;
+      top: 20px;
+    }
+
+    pre {
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 13px;
+      line-height: 1.55;
+      max-height: 70vh;
+      overflow: auto;
+    }
+
+    @media (max-width: 960px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .detail-panel {
+        position: static;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="panel">
+      <h1>本地记录工作台</h1>
+      <div class="lead">查看扩展本地保存的 session 和 action。这里不依赖服务端，适合排查采集结果、筛选本地样本和快速核对同步状态。</div>
+
+      <div class="filters">
+        <label>
+          会话
+          <select id="sessionFilter"></select>
+        </label>
+        <label>
+          动作类型
+          <select id="typeFilter">
+            <option value="">全部类型</option>
+            <option value="navigation">navigation</option>
+            <option value="click">click</option>
+            <option value="input">input</option>
+            <option value="change">change</option>
+            <option value="submit">submit</option>
+            <option value="scroll">scroll</option>
+            <option value="keydown">keydown</option>
+            <option value="mousemove">mousemove</option>
+          </select>
+        </label>
+        <label>
+          同步状态
+          <select id="syncStatusFilter">
+            <option value="">全部状态</option>
+            <option value="pending">pending</option>
+            <option value="failed">failed</option>
+            <option value="synced">synced</option>
+          </select>
+        </label>
+        <label>
+          开始时间
+          <input id="dateFromFilter" type="number" min="0" placeholder="时间戳毫秒">
+        </label>
+        <label>
+          结束时间
+          <input id="dateToFilter" type="number" min="0" placeholder="时间戳毫秒">
+        </label>
+        <label>
+          关键词
+          <input id="keywordFilter" type="search" placeholder="selector / URL / 文本 / 输入值">
+        </label>
+      </div>
+
+      <div class="filter-actions" style="margin-top: 14px;">
+        <button id="refreshBtn" type="button">刷新记录</button>
+        <button class="secondary" id="resetBtn" type="button">清空筛选</button>
+      </div>
+    </section>
+
+    <section class="summary" id="summaryBar">
+      <div class="summary-card">
+        <span class="summary-label">命中记录</span>
+        <span class="summary-value" id="summaryTotal">0</span>
+        <span class="summary-meta" id="summaryEventMeta">等待加载</span>
+      </div>
+      <div class="summary-card">
+        <span class="summary-label">Pending</span>
+        <span class="summary-value pending" id="summaryPending">0</span>
+      </div>
+      <div class="summary-card">
+        <span class="summary-label">Failed</span>
+        <span class="summary-value failed" id="summaryFailed">0</span>
+      </div>
+      <div class="summary-card">
+        <span class="summary-label">Synced</span>
+        <span class="summary-value synced" id="summarySynced">0</span>
+      </div>
+    </section>
+
+    <section class="layout">
+      <div class="panel">
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>时间</th>
+                <th>类型</th>
+                <th>元素摘要</th>
+                <th>内容摘要</th>
+                <th>附件</th>
+                <th>同步</th>
+              </tr>
+            </thead>
+            <tbody id="recordsBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel detail-panel">
+        <h2>记录详情</h2>
+        <div class="muted" style="margin-bottom: 12px;">点击左侧任意一条 action 可查看原始 JSON。</div>
+        <div class="attachment-block">
+          <span class="attachment-title">附件摘要</span>
+          <div id="attachmentSummary" class="muted">请选择一条记录查看附件状态。</div>
+        </div>
+        <div class="attachment-block">
+          <span class="attachment-title">截图预览</span>
+          <img id="attachmentPreview" class="attachment-preview" alt="attachment preview" hidden>
+          <div id="attachmentPreviewEmpty" class="muted">当前记录没有可展示的截图。</div>
+        </div>
+        <pre id="recordDetail">请选择一条记录查看详情。</pre>
+      </div>
+    </section>
+  </div>
+
+  <script type="module" src="./src/ui/records.js"></script>
+</body>
+</html>

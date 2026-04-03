@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Browser Action Monitor</title>
+  <style>
+    :root { --primary:#3b82f6; --primary-dark:#1d4ed8; --accent:#10b981; --danger:#ef4444; --panel:#fff; --border:#dbe5f0; --text:#0f172a; --muted:#64748b; --bg:linear-gradient(180deg,#eef5ff 0%,#f8fafc 100%); }
+    * { box-sizing:border-box; }
+    body { width:360px; margin:0; padding:18px; font-family:"Segoe UI",Roboto,sans-serif; color:var(--text); background:var(--bg); }
+    .card { background:var(--panel); border:1px solid var(--border); border-radius:18px; padding:18px; box-shadow:0 18px 36px rgba(15,23,42,.08); }
+    h1 { margin:0 0 16px; font-size:20px; }
+    .status { display:flex; align-items:center; justify-content:space-between; padding:12px 14px; border-radius:14px; background:#eff6ff; margin-bottom:16px; }
+    .status-main { display:flex; align-items:center; gap:10px; font-weight:600; }
+    .dot { width:12px; height:12px; border-radius:999px; background:var(--accent); box-shadow:0 0 0 6px rgba(16,185,129,.16); }
+    .dot.paused { background:#94a3b8; box-shadow:0 0 0 6px rgba(148,163,184,.16); }
+    .pill { padding:4px 10px; border-radius:999px; background:rgba(59,130,246,.12); color:var(--primary-dark); font-size:12px; font-weight:600; }
+    .stats { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+    .stat { padding:12px; border:1px solid var(--border); border-radius:14px; background:#f8fbff; }
+    .stat-label { display:block; color:var(--muted); font-size:12px; margin-bottom:6px; }
+    .stat-value { font-size:14px; font-weight:600; word-break:break-all; }
+    .actions { display:grid; gap:10px; }
+    .row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .toggles { display:grid; gap:10px; margin:16px 0; }
+    .toggle-card { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 14px; border:1px solid var(--border); border-radius:14px; background:#f8fbff; }
+    .toggle-meta { display:grid; gap:4px; }
+    .toggle-title { font-size:13px; font-weight:700; }
+    .toggle-subtitle { font-size:12px; color:var(--muted); }
+    .switch { width:42px; height:24px; accent-color:var(--primary); }
+    .attachment-status { margin:0 0 16px; padding:10px 12px; border-radius:12px; background:#f8fbff; color:var(--muted); font-size:12px; line-height:1.5; }
+    button { border:0; border-radius:12px; padding:11px 14px; font-size:14px; font-weight:600; cursor:pointer; transition:transform .15s ease, opacity .15s ease; }
+    button:active { transform:translateY(1px) scale(.99); }
+    button:disabled { cursor:not-allowed; opacity:.65; }
+    .primary { background:var(--primary); color:#fff; }
+    .secondary { background:#e2e8f0; color:var(--text); }
+    .success { background:var(--accent); color:#fff; }
+    .warning { background:#f59e0b; color:#fff; }
+    .danger { background:var(--danger); color:#fff; }
+    .meta { margin-top:12px; font-size:12px; color:var(--muted); line-height:1.5; min-height:18px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Browser Action Monitor</h1>
+    <div class="status">
+      <div class="status-main"><span class="dot" id="statusDot"></span><span id="statusText">记录中</span></div>
+      <span class="pill" id="syncBadge">仅本地模式</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><span class="stat-label">会话 ID</span><span class="stat-value" id="sessionId">-</span></div>
+      <div class="stat"><span class="stat-label">动作数量</span><span class="stat-value" id="actionCount">0</span></div>
+      <div class="stat"><span class="stat-label">开始时间</span><span class="stat-value" id="startedAt">-</span></div>
+      <div class="stat"><span class="stat-label">同步状态</span><span class="stat-value" id="syncSummary">-</span></div>
+    </div>
+    <div class="toggles">
+      <label class="toggle-card" for="domSnapshotsToggle">
+        <span class="toggle-meta">
+          <span class="toggle-title">DOM 快照</span>
+          <span class="toggle-subtitle">默认开启，压力过高时可自动关闭</span>
+        </span>
+        <input class="switch" id="domSnapshotsToggle" type="checkbox">
+      </label>
+      <label class="toggle-card" for="screenshotsToggle">
+        <span class="toggle-meta">
+          <span class="toggle-title">动作截图</span>
+          <span class="toggle-subtitle">默认开启，超限或失败过多时自动关闭</span>
+        </span>
+        <input class="switch" id="screenshotsToggle" type="checkbox">
+      </label>
+    </div>
+    <div class="attachment-status" id="attachmentStatus">附件状态加载中...</div>
+    <div class="actions">
+      <div class="row"><button class="success" id="startBtn">开始记录</button><button class="warning" id="pauseBtn">暂停记录</button></div>
+      <div class="row"><button class="primary" id="recordsBtn">查看记录</button><button class="secondary" id="settingsBtn">打开设置</button></div>
+      <div class="row"><button class="primary" id="exportBtn">导出本地 JSON</button><button class="secondary" id="exportAgentJsonBtn">导出 Agent JSON</button></div>
+      <div class="row"><button class="secondary" id="exportAgentZipBtn">导出 Agent ZIP</button><button class="secondary" id="retrySyncBtn">立即同步</button></div>
+      <div class="row"><button class="secondary" id="newSessionBtn">新建会话</button><button class="danger" id="clearBtn">清空数据</button></div>
+    </div>
+    <div class="meta" id="feedback"></div>
+  </div>
+  <script type="module" src="./src/ui/popup.js"></script>
+</body>
+</html>
