@@ -129,7 +129,7 @@ h3 {
 
 .drawer {
   display: grid;
-  grid-template-rows: auto auto auto auto minmax(0, 1fr);
+  grid-template-rows: auto auto auto minmax(0, 1fr);
   gap: 16px;
   align-content: start;
   position: sticky;
@@ -149,15 +149,6 @@ h3 {
   justify-content: space-between;
   align-items: start;
   gap: 12px;
-}
-
-.drawer-meta {
-  padding: 14px;
-  border-radius: 14px;
-  background: var(--panel-muted);
-  color: var(--muted);
-  line-height: 1.6;
-  word-break: break-word;
 }
 
 .tag-editor,
@@ -180,10 +171,65 @@ h3 {
 .drawer-scroll,
 .actions-list,
 .attachment-panel,
-.action-detail {
+.action-detail,
+.detail-section {
   display: grid;
   gap: 14px;
   align-content: start;
+}
+
+.detail-section + .detail-section {
+  margin-top: 6px;
+}
+
+.detail-section-header {
+  display: grid;
+  gap: 6px;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(152px, 1fr));
+  gap: 12px;
+}
+
+.detail-card,
+.attachment-preview-frame {
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, #fbfdff 0%, #f3f8ff 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.detail-item {
+  display: grid;
+  gap: 8px;
+}
+
+.detail-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.detail-value {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.6;
+  color: var(--text);
+  word-break: break-word;
+}
+
+.detail-value.muted {
+  font-weight: 500;
+}
+
+.detail-inline {
+  padding: 0 2px;
+  line-height: 1.6;
 }
 
 input,
@@ -387,6 +433,20 @@ tbody tr:hover {
   border: 1px solid var(--border);
   border-radius: 12px;
   background: var(--panel-muted);
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease, box-shadow 120ms ease, transform 120ms ease;
+}
+
+.action-item:hover {
+  border-color: #bfd3ea;
+  background: #fdfefe;
+}
+
+.action-item.is-selected {
+  border-color: #90b5ff;
+  background: linear-gradient(180deg, #eef5ff 0%, #f8fbff 100%);
+  box-shadow: 0 10px 24px rgba(42, 109, 244, 0.12);
+  transform: translateY(-1px);
 }
 
 .action-item header {
@@ -447,19 +507,6 @@ tbody tr:hover {
   color: var(--warning);
 }
 
-.attachment-summary,
-.attachment-preview-frame {
-  padding: 14px;
-  border-radius: 14px;
-  border: 1px solid var(--border);
-  background: var(--panel-muted);
-}
-
-.attachment-summary {
-  line-height: 1.6;
-  word-break: break-word;
-}
-
 .attachment-preview {
   display: block;
   width: 100%;
@@ -500,5 +547,9 @@ pre {
   .drawer {
     position: static;
     max-height: none;
+  }
+
+  .detail-grid {
+    grid-template-columns: 1fr;
   }
 }

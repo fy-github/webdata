@@ -1,12 +1,16 @@
 import { DEFAULT_SETTINGS, EVENT_SETTINGS_MAP, STORAGE_KEYS } from "./src/extension/shared/constants.js";
 import { normalizeAction } from "./src/extension/shared/normalize.js";
 import {
+  clearAllAttachments,
   createChromeAttachmentStorageAdapter,
+  createIndexedDbAttachmentStorageAdapter,
+  createIndexedDbBackedAttachmentStorageAdapter,
   getAttachmentUsage,
   readScreenshotAttachment,
   saveScreenshotAttachment
 } from "./src/extension/background/attachment-store.js";
 import { createAttachmentQueue } from "./src/extension/background/attachment-queue.js";
+import { createBrowserIndexedDbAttachmentBackend } from "./src/extension/background/attachment-indexeddb.js";
 import {
   appendAction,
   clearState,
@@ -21,7 +25,12 @@ import {
 } from "./src/extension/background/session-store.js";
 import { downloadAgentExport } from "./src/extension/background/agent-export.js";
 import { queryRecordsState } from "./src/extension/background/records-query.js";
-import { evaluateAttachmentPressure, resolveAttachmentPolicy } from "./src/extension/background/screenshot-policy.js";
+import {
+  evaluateAttachmentPressure,
+  resolveAttachmentPolicy,
+  shouldAutoRecoverScreenshots
+} from "./src/extension/background/screenshot-policy.js";
+import { captureScreenshotForProfile } from "./src/extension/background/screenshot-capture.js";
 import { syncPendingActions } from "./src/extension/background/sync.js";
 import { evaluateRuntimeGates } from "./src/extension/background/runtime-gates.js";
 import { runSyncOrchestrator } from "./src/extension/background/sync-orchestrator.js";
@@ -73,30 +82,39 @@ function clearShortSyncTimer() {
 
 function ensureAttachmentInfrastructure() {
   if (!attachmentStorageAdapter) {
-    attachmentStorageAdapter = createChromeAttachmentStorageAdapter(chrome.storage.local);
+    const legacyAttachmentStorageAdapter = createChromeAttachmentStorageAdapter(chrome.storage.local);
+    attachmentStorageAdapter = legacyAttachmentStorageAdapter;
+
+    if (typeof indexedDB !== "undefined") {
+      attachmentStorageAdapter = createIndexedDbBackedAttachmentStorageAdapter({
+        indexedDbAdapter: createIndexedDbAttachmentStorageAdapter(
+          createBrowserIndexedDbAttachmentBackend()
+        ),
+        legacyAdapter: legacyAttachmentStorageAdapter
+      });
+    }
   }
 
   if (!attachmentQueue) {
     attachmentQueue = createAttachmentQueue({
-      captureScreenshot: async ({ windowId }) => new Promise((resolve, reject) => {
-        chrome.tabs.captureVisibleTab(windowId, { format: "jpeg", quality: 60 }, (dataUrl) => {
-          if (chrome.runtime.lastError) {
-            reject(new Error(chrome.runtime.lastError.message));
-            return;
-          }
+      captureScreenshot: async ({ windowId }) => captureScreenshotForProfile({
+        windowId,
+        settings,
+        captureVisibleTabImpl: (windowId, options) => new Promise((resolve, reject) => {
+          chrome.tabs.captureVisibleTab(windowId, options, (dataUrl) => {
+            if (chrome.runtime.lastError) {
+              reject(new Error(chrome.runtime.lastError.message));
+              return;
+            }
 
-          if (!dataUrl) {
-            reject(new Error("empty-screenshot"));
-            return;
-          }
+            if (!dataUrl) {
+              reject(new Error("empty-screenshot"));
+              return;
+            }
 
-          resolve({
-            dataUrl,
-            mimeType: "image/jpeg",
-            width: 0,
-            height: 0
+            resolve(dataUrl);
           });
-        });
+        })
       }),
       saveScreenshot: async ({ actionId, payload }) => saveScreenshotAttachment(attachmentStorageAdapter, {
         actionId,
@@ -571,8 +589,23 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         sendResponse({ success: true, settings });
         return;
       case "saveSettings":
-        resetAutoDisabledFlagsForManualEnable(settings, { ...DEFAULT_SETTINGS, ...(request.data || {}) });
-        settings = { ...DEFAULT_SETTINGS, ...(request.data || {}) };
+        {
+          const nextSettings = { ...DEFAULT_SETTINGS, ...(request.data || {}) };
+          resetAutoDisabledFlagsForManualEnable(settings, nextSettings);
+          if (shouldAutoRecoverScreenshots({
+            previousSettings: settings,
+            nextSettings,
+            state
+          })) {
+            updateAttachmentHealth(state, {
+              autoDisabled: {
+                screenshots: false,
+                screenshotReason: ""
+              }
+            });
+          }
+          settings = nextSettings;
+        }
         refreshSessionSyncFlags();
         await persistSettings();
         await persistState();
@@ -650,6 +683,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         return;
       }
       case "clearData":
+        await clearAllAttachments(attachmentStorageAdapter);
         clearState(state);
         startNewSession(state);
         refreshSessionSyncFlags();

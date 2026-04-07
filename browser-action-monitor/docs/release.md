@@ -35,7 +35,7 @@ dist/
 示例：
 
 ```text
-dist/release-1.0.0/
+dist/release-2.0.0/
 ```
 
 ## 4. 扩展包内容

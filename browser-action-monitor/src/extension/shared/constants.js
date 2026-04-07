@@ -1,3 +1,23 @@
+export const SCREENSHOT_STORAGE_PROFILES = {
+  light: {
+    storageLimitMb: 64,
+    jpegQuality: 0.55,
+    maxWidth: 1280
+  },
+  balanced: {
+    storageLimitMb: 256,
+    jpegQuality: 0.72,
+    maxWidth: 1600
+  },
+  forensics: {
+    storageLimitMb: 1024,
+    jpegQuality: 0.86,
+    maxWidth: 1920
+  }
+};
+
+export const DEFAULT_SCREENSHOT_STORAGE_PROFILE = "balanced";
+
 export const DEFAULT_SETTINGS = {
   captureClicks: true,
   captureInput: true,
@@ -11,8 +31,9 @@ export const DEFAULT_SETTINGS = {
   mousemoveThrottleMs: 800,
   captureDomSnapshots: true,
   captureScreenshots: true,
+  screenshotStorageProfile: DEFAULT_SCREENSHOT_STORAGE_PROFILE,
   screenshotQueueLimit: 40,
-  screenshotStorageLimitMb: 8,
+  screenshotStorageLimitMb: SCREENSHOT_STORAGE_PROFILES[DEFAULT_SCREENSHOT_STORAGE_PROFILE].storageLimitMb,
   screenshotFailureThreshold: 3,
   screenshotSessionLimit: 500,
   domSnapshotActionLimit: 3000,

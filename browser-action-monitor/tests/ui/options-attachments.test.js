@@ -7,6 +7,10 @@ test("options page exposes attachment capture toggles", async () => {
 
   assert.match(html, /id="captureDomSnapshots"/);
   assert.match(html, /id="captureScreenshots"/);
+  assert.match(html, /id="screenshotStorageProfile"/);
+  assert.match(html, /value="light"/);
+  assert.match(html, /value="balanced"/);
+  assert.match(html, /value="forensics"/);
 });
 
 async function loadOptionsUi() {
@@ -25,6 +29,7 @@ async function loadOptionsUi() {
     "privacyEnabled",
     "captureDomSnapshots",
     "captureScreenshots",
+    "screenshotStorageProfile",
     "serverUrl",
     "authMode",
     "apiKey",
@@ -62,6 +67,7 @@ async function loadOptionsUi() {
     elements.set(id, createElement(id));
   }
   elements.get("authMode").value = "none";
+  elements.get("screenshotStorageProfile").value = "";
 
   const messageLog = [];
   const previousDocument = globalThis.document;
@@ -126,9 +132,11 @@ test("options UI loads and saves attachment capture toggles", async () => {
   try {
     assert.equal(elements.get("captureDomSnapshots").checked, true);
     assert.equal(elements.get("captureScreenshots").checked, false);
+    assert.equal(elements.get("screenshotStorageProfile").value, "balanced");
 
     elements.get("captureDomSnapshots").checked = false;
     elements.get("captureScreenshots").checked = true;
+    elements.get("screenshotStorageProfile").value = "forensics";
 
     const saveHandler = elements.get("saveBtn").handlers.click;
     await saveHandler();
@@ -136,6 +144,7 @@ test("options UI loads and saves attachment capture toggles", async () => {
     const saveMessage = messageLog.find((entry) => entry.action === "saveSettings");
     assert.equal(saveMessage.data.captureDomSnapshots, false);
     assert.equal(saveMessage.data.captureScreenshots, true);
+    assert.equal(saveMessage.data.screenshotStorageProfile, "forensics");
   } finally {
     cleanup();
   }

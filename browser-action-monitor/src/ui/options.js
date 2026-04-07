@@ -40,6 +40,7 @@ function getFormValues() {
     privacyEnabled: document.getElementById("privacyEnabled").checked,
     captureDomSnapshots: document.getElementById("captureDomSnapshots").checked,
     captureScreenshots: document.getElementById("captureScreenshots").checked,
+    screenshotStorageProfile: document.getElementById("screenshotStorageProfile").value || DEFAULT_SETTINGS.screenshotStorageProfile,
     serverUrl: document.getElementById("serverUrl").value.trim(),
     authMode: document.getElementById("authMode").value,
     apiKey: document.getElementById("apiKey").value.trim(),
@@ -78,6 +79,7 @@ function fillForm(settings) {
   document.getElementById("privacyEnabled").checked = settings.privacyEnabled;
   document.getElementById("captureDomSnapshots").checked = settings.captureDomSnapshots !== false;
   document.getElementById("captureScreenshots").checked = settings.captureScreenshots !== false;
+  document.getElementById("screenshotStorageProfile").value = settings.screenshotStorageProfile || DEFAULT_SETTINGS.screenshotStorageProfile;
   document.getElementById("serverUrl").value = settings.serverUrl;
   document.getElementById("authMode").value = settings.authMode;
   document.getElementById("apiKey").value = settings.apiKey;

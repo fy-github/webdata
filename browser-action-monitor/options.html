@@ -210,8 +210,17 @@
           <label for="captureScreenshots">动作截图</label>
           <input id="captureScreenshots" type="checkbox">
         </div>
+        <div class="field">
+          <label for="screenshotStorageProfile">截图存储档位</label>
+          <select id="screenshotStorageProfile">
+            <option value="light">轻量</option>
+            <option value="balanced">均衡（推荐）</option>
+            <option value="forensics">取证</option>
+          </select>
+        </div>
       </div>
       <div class="hint">这里控制是否采集 DOM 快照和动作截图。弹窗只展示实时状态，不再直接修改这两个开关。</div>
+      <div class="hint">轻量：64 MB / JPEG 0.55 / 1280px。均衡：256 MB / JPEG 0.72 / 1600px。取证：1024 MB / JPEG 0.86 / 1920px。</div>
     </section>
 
     <section class="panel">

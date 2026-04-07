@@ -1,10 +1,11 @@
 {
   "manifest_version": 3,
   "name": "Browser Action Monitor",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Record browser actions locally and optionally sync them to a remote server.",
   "permissions": [
     "storage",
+    "unlimitedStorage",
     "downloads",
     "alarms",
     "idle",

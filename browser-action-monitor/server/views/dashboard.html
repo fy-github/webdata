@@ -93,8 +93,6 @@
           <button class="ghost" id="closeDrawerButton" type="button">Close</button>
         </div>
 
-        <div id="drawerMeta" class="drawer-meta">Select a session to inspect actions, attachment coverage, and exports.</div>
-
         <div class="tag-editor">
           <input id="tagEditorInput" type="text" placeholder="Comma separated tags">
           <button type="button" id="saveTagsButton">Save tags</button>
@@ -112,22 +110,62 @@
         </div>
 
         <div class="drawer-scroll">
-          <section class="actions-list">
-            <h3>Actions</h3>
+          <section class="detail-section">
+            <div class="detail-section-header">
+              <p class="eyebrow">Session Summary</p>
+              <h3>Session 摘要</h3>
+            </div>
+            <div id="sessionSummary" class="detail-grid">
+              <article class="detail-card">
+                <div class="detail-item">
+                  <span class="detail-label">状态</span>
+                  <div class="detail-value">Select a session to inspect actions, attachment coverage, and exports.</div>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <section class="detail-section actions-list">
+            <div class="detail-section-header">
+              <p class="eyebrow">Action Timeline</p>
+              <h3>动作列表</h3>
+            </div>
             <div id="actionsList"></div>
           </section>
 
-          <section class="attachment-panel">
-            <h3>Attachments</h3>
-            <div id="attachmentSummary" class="attachment-summary muted">Select an action to inspect DOM snapshot and screenshot status.</div>
-            <div class="attachment-preview-frame">
+          <section class="detail-section attachment-panel">
+            <div class="detail-section-header">
+              <p class="eyebrow">Action Detail</p>
+              <h3>单条动作详情</h3>
+            </div>
+            <div id="actionFacts" class="detail-grid">
+              <article class="detail-card">
+                <div class="detail-item">
+                  <span class="detail-label">状态</span>
+                  <div class="detail-value">Select an action to inspect its structured facts.</div>
+                </div>
+              </article>
+            </div>
+            <div id="attachmentSummary" class="detail-inline muted">Select an action to inspect DOM snapshot and screenshot status.</div>
+            <div id="attachmentFacts" class="detail-grid">
+              <article class="detail-card">
+                <div class="detail-item">
+                  <span class="detail-label">附件</span>
+                  <div class="detail-value">No attachment details yet.</div>
+                </div>
+              </article>
+            </div>
+            <div class="attachment-preview-frame detail-card">
               <img id="attachmentPreview" class="attachment-preview hidden" alt="Action screenshot preview">
               <div id="attachmentPreviewEmpty" class="attachment-preview-empty muted">No remote screenshot preview for the selected action.</div>
             </div>
           </section>
 
-          <section class="action-detail">
-            <h3>Action JSON</h3>
+          <section class="detail-section action-detail">
+            <div class="detail-section-header">
+              <p class="eyebrow">Raw JSON</p>
+              <h3>原始 JSON</h3>
+            </div>
             <pre id="actionDetail">Select an action to inspect its normalized payload.</pre>
           </section>
         </div>

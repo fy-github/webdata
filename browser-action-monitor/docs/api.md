@@ -78,7 +78,7 @@ curl http://127.0.0.1:3000/health
 {
   "ok": true,
   "authMode": "apiKey",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "features": {
     "agentExport": true
   }

@@ -105,10 +105,38 @@ test("dashboard shell exposes attachment summary and preview regions", async () 
   assert.match(html, /id="attachmentPreviewEmpty"/);
 });
 
+test("dashboard shell exposes structured detail drawer regions", async () => {
+  const html = await readFile(new URL("../../server/views/dashboard.html", import.meta.url), "utf8");
+
+  assert.match(html, /id="sessionSummary"/);
+  assert.match(html, /id="actionFacts"/);
+  assert.match(html, /id="attachmentFacts"/);
+  assert.match(html, /id="actionDetail"/);
+});
+
+test("dashboard styles include structured detail cards and selected action emphasis", async () => {
+  const css = await readFile(new URL("../../server/public/dashboard.css", import.meta.url), "utf8");
+
+  assert.match(css, /\.detail-section/);
+  assert.match(css, /\.detail-grid/);
+  assert.match(css, /\.detail-card/);
+  assert.match(css, /\.detail-item/);
+  assert.match(css, /\.action-item\.is-selected/);
+});
+
 test("dashboard client renders attachment indicators and preview requests", async () => {
   const script = await readFile(new URL("../../server/public/dashboard.js", import.meta.url), "utf8");
 
   assert.match(script, /attachmentSummary/);
   assert.match(script, /attachmentPreview/);
   assert.match(script, /remoteStatus|failed_privacy_guard|attachment/);
+});
+
+test("dashboard client exposes structured detail renderers", async () => {
+  const script = await readFile(new URL("../../server/public/dashboard.js", import.meta.url), "utf8");
+
+  assert.match(script, /renderSessionSummary/);
+  assert.match(script, /renderActionFacts/);
+  assert.match(script, /renderAttachmentFacts/);
+  assert.match(script, /actionDetail/);
 });

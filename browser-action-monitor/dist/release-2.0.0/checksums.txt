@@ -1,0 +1,2 @@
+909b254feab8b4f259efbe74350ddb4d3a9d046b7ba52663e6cfe5a1e6536e6b  extension/browser-action-monitor-extension-2.0.0.zip
+6f243b55c5861ae7fd03a0ec4ff4ef1ae3246a232eca95c40cd492b3c32fda9d  server/browser-action-monitor-server-2.0.0.zip

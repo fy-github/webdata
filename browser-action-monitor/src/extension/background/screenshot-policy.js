@@ -1,10 +1,56 @@
+import {
+  DEFAULT_SCREENSHOT_STORAGE_PROFILE,
+  SCREENSHOT_STORAGE_PROFILES
+} from "../shared/constants.js";
+
 function toPositiveNumber(value, fallback) {
   const parsed = Number(value);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 }
 
+function resolveProfileName(settings = {}) {
+  const profileName = settings.screenshotStorageProfile;
+  return Object.hasOwn(SCREENSHOT_STORAGE_PROFILES, profileName)
+    ? profileName
+    : DEFAULT_SCREENSHOT_STORAGE_PROFILE;
+}
+
+export function resolveScreenshotStorageProfile(settings = {}) {
+  const profileName = resolveProfileName(settings);
+  return {
+    name: profileName,
+    ...SCREENSHOT_STORAGE_PROFILES[profileName]
+  };
+}
+
 function toStorageLimitBytes(settings = {}) {
-  return toPositiveNumber(settings.screenshotStorageLimitMb, 8) * 1024 * 1024;
+  if (Object.hasOwn(SCREENSHOT_STORAGE_PROFILES, settings.screenshotStorageProfile)) {
+    return SCREENSHOT_STORAGE_PROFILES[settings.screenshotStorageProfile].storageLimitMb * 1024 * 1024;
+  }
+
+  const fallbackMb = SCREENSHOT_STORAGE_PROFILES[DEFAULT_SCREENSHOT_STORAGE_PROFILE].storageLimitMb;
+  return toPositiveNumber(settings.screenshotStorageLimitMb, fallbackMb) * 1024 * 1024;
+}
+
+export function shouldAutoRecoverScreenshots({
+  previousSettings = {},
+  nextSettings = {},
+  state = {}
+}) {
+  if (nextSettings.captureScreenshots === false) {
+    return false;
+  }
+
+  const autoDisabled = state.attachmentHealth?.autoDisabled || {};
+  if (!autoDisabled.screenshots || autoDisabled.screenshotReason !== "storage-pressure") {
+    return false;
+  }
+
+  const previousLimit = toStorageLimitBytes(previousSettings);
+  const nextLimit = toStorageLimitBytes(nextSettings);
+  const currentUsage = Number(state.attachmentHealth?.screenshotStorageBytes || 0);
+
+  return nextLimit > previousLimit && currentUsage < nextLimit;
 }
 
 export function resolveAttachmentPolicy(settings = {}, state = {}) {

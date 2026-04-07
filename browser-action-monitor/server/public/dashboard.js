@@ -198,6 +198,43 @@ function getCurrentAction() {
   return state.currentSession.actions.find((action) => action.id === state.currentActionId) || null;
 }
 
+function renderFactCards(facts = [], emptyLabel = "状态", emptyMessage = "No data") {
+  if (!facts.length) {
+    return `
+      <article class="detail-card">
+        <div class="detail-item">
+          <span class="detail-label">${escapeHtml(emptyLabel)}</span>
+          <div class="detail-value muted">${escapeHtml(emptyMessage)}</div>
+        </div>
+      </article>
+    `;
+  }
+
+  return facts.map(({ label, value, html = "", muted = false }) => `
+    <article class="detail-card">
+      <div class="detail-item">
+        <span class="detail-label">${escapeHtml(label)}</span>
+        <div class="detail-value${muted ? " muted" : ""}">${html || escapeHtml(value == null || value === "" ? "-" : String(value))}</div>
+      </div>
+    </article>
+  `).join("");
+}
+
+function renderSessionSummary(session = null) {
+  byId("sessionSummary").innerHTML = session
+    ? renderFactCards([
+      { label: "Session ID", value: session.sessionId },
+      { label: "Started At", value: formatDate(session.startedAt) },
+      { label: "Ended At", value: formatDate(session.endedAt) },
+      { label: "Action Count", value: String(session.actionCount ?? 0) },
+      { label: "Tags", html: renderTags(session.tags || []), muted: !(session.tags || []).length },
+      { label: "Sync", value: `pending ${session.sync?.pendingCount ?? 0} | failed ${session.sync?.failedCount ?? 0}` },
+      { label: "Status", value: session.status || "unknown" },
+      { label: "Last URL", value: session.lastUrl || "-" }
+    ], "状态", "Select a session to inspect actions, attachment coverage, and exports.")
+    : renderFactCards([], "状态", "Select a session to inspect actions, attachment coverage, and exports.");
+}
+
 function buildActionAttachmentSummary(action = {}) {
   const domStatus = action.attachment?.domSnapshot?.status || "none";
   const screenshot = action.attachment?.screenshot || {};
@@ -215,49 +252,49 @@ function renderAttachmentIndicators(action = {}) {
     .join("")}</div>`;
 }
 
-function describeScreenshot(action = {}) {
-  const screenshot = action.attachment?.screenshot || {};
-  const effectiveStatus = screenshot.remoteStatus || screenshot.status || "none";
-  const details = [`Screenshot status: ${effectiveStatus}`];
-
-  if (screenshot.remoteStatus) {
-    details.push(`Remote sync: ${screenshot.remoteStatus}`);
-  }
-  if (screenshot.error) {
-    details.push(`Capture error: ${screenshot.error}`);
-  }
-  if (screenshot.remoteError) {
-    details.push(`Upload error: ${screenshot.remoteError}`);
-  }
-  if (screenshot.remoteUploadedAt) {
-    details.push(`Uploaded: ${formatDate(screenshot.remoteUploadedAt)}`);
-  }
-  if (screenshot.width && screenshot.height) {
-    details.push(`Size: ${screenshot.width}x${screenshot.height}`);
-  }
-
-  return details.join(" | ");
+function renderActionFacts(action = null) {
+  byId("actionFacts").innerHTML = action
+    ? renderFactCards([
+      { label: "Action ID", value: action.id || "-" },
+      { label: "Type", value: action.type || "unknown" },
+      { label: "Timestamp", value: formatDate(action.timestamp) },
+      { label: "Sync", value: action.sync?.status || "pending" },
+      { label: "Page URL", value: action.page?.url || "-" },
+      { label: "Page Title", value: action.page?.title || "-" },
+      { label: "Target Selector", value: action.target?.selector || "-" },
+      { label: "Target Text", value: action.target?.text || action.target?.tagName || "-" },
+      { label: "Payload Value", value: action.payload?.value || "-" },
+      { label: "Payload Key", value: action.payload?.key || "-" }
+    ], "状态", "Select an action to inspect its structured facts.")
+    : renderFactCards([], "状态", "Select an action to inspect its structured facts.");
 }
 
-function renderAttachmentDetail(action = {}) {
+function renderAttachmentFacts(action = null) {
   const attachmentSummary = byId("attachmentSummary");
-  const domSnapshot = action.attachment?.domSnapshot || {};
 
-  if (!action.id) {
+  if (!action?.id) {
     attachmentSummary.textContent = "Select an action to inspect DOM snapshot and screenshot status.";
+    byId("attachmentFacts").innerHTML = renderFactCards([], "附件", "No attachment details yet.");
     return;
   }
 
-  const domParts = [
-    `DOM status: ${domSnapshot.status || "none"}`,
-    domSnapshot.privacyMode ? `DOM privacy: ${domSnapshot.privacyMode}` : "",
-    domSnapshot.preview ? `DOM preview: ${domSnapshot.preview}` : ""
-  ].filter(Boolean);
+  const domSnapshot = action.attachment?.domSnapshot || {};
+  const screenshot = action.attachment?.screenshot || {};
+  const screenshotStatus = screenshot.remoteStatus || screenshot.status || "none";
+  const size = screenshot.width && screenshot.height ? `${screenshot.width}x${screenshot.height}` : "-";
 
-  attachmentSummary.innerHTML = `
-    <div>${escapeHtml(domParts.join(" | "))}</div>
-    <div>${escapeHtml(describeScreenshot(action))}</div>
-  `;
+  attachmentSummary.textContent = `DOM ${domSnapshot.status || "none"} | Screenshot ${screenshotStatus}`;
+  byId("attachmentFacts").innerHTML = renderFactCards([
+    { label: "DOM Status", value: domSnapshot.status || "none" },
+    { label: "DOM Preview", value: domSnapshot.preview || "-" },
+    { label: "DOM Privacy", value: domSnapshot.privacyMode || "-" },
+    { label: "Screenshot Status", value: screenshotStatus },
+    { label: "Remote URL", value: screenshot.remoteUrl || "-" },
+    { label: "Uploaded At", value: formatDate(screenshot.remoteUploadedAt) },
+    { label: "Size", value: size },
+    { label: "Capture Error", value: screenshot.error || "-" },
+    { label: "Upload Error", value: screenshot.remoteError || "-" }
+  ], "附件", "No attachment details yet.");
 }
 
 function renderAttachmentPreview(action = {}) {
@@ -300,7 +337,8 @@ function renderActionJson(action = null) {
 
 function updateSelectedActionUI() {
   const currentAction = getCurrentAction();
-  renderAttachmentDetail(currentAction || {});
+  renderActionFacts(currentAction);
+  renderAttachmentFacts(currentAction);
   renderAttachmentPreview(currentAction || {});
   renderActionJson(currentAction);
 
@@ -316,32 +354,21 @@ function selectAction(actionId) {
   updateSelectedActionUI();
 }
 
-function buildDrawerMeta(session = {}) {
-  return [
-    `Started: ${formatDate(session.startedAt)}`,
-    `Ended: ${formatDate(session.endedAt)}`,
-    `Actions: ${session.actionCount ?? 0}`,
-    `Last URL: ${session.lastUrl || "-"}`,
-    `Tags: ${(session.tags || []).join(", ") || "-"}`,
-    `Pending sync: ${session.sync?.pendingCount ?? 0}`,
-    `Failed sync: ${session.sync?.failedCount ?? 0}`
-  ].map((line) => `<div>${escapeHtml(line)}</div>`).join("");
-}
-
 function renderActionList() {
   const list = byId("actionsList");
   const actions = state.currentSession?.actions || [];
 
   if (!actions.length) {
     list.innerHTML = '<div class="muted">This session has no actions.</div>';
-    renderAttachmentDetail({});
+    renderActionFacts(null);
+    renderAttachmentFacts(null);
     renderAttachmentPreview({});
     renderActionJson(null);
     return;
   }
 
   list.innerHTML = actions.map((action) => `
-    <div class="action-item" data-action-id="${escapeHtml(action.id)}">
+    <div class="action-item${action.id === state.currentActionId ? " is-selected" : ""}" data-action-id="${escapeHtml(action.id)}">
       <header>
         <strong>${escapeHtml(action.type || "unknown")}</strong>
         <span class="muted">${escapeHtml(formatDate(action.timestamp))}</span>
@@ -397,15 +424,14 @@ function renderDrawer() {
 
   drawer.classList.remove("hidden");
   byId("drawerTitle").textContent = state.currentSession.session.sessionId;
-  byId("drawerMeta").innerHTML = buildDrawerMeta(state.currentSession.session);
+  renderSessionSummary(state.currentSession.session);
   byId("tagEditorInput").value = (state.currentSession.session.tags || []).join(", ");
-
-  renderActionList();
 
   if (!state.currentActionId && state.currentSession.actions.length) {
     state.currentActionId = state.currentSession.actions[0].id;
   }
 
+  renderActionList();
   updateSelectedActionUI();
   history.replaceState({}, "", `/dashboard/session/${state.currentSession.session.sessionId}`);
 }

@@ -38,6 +38,9 @@ export function createAttachmentStorageAdapter(initialState = {}) {
       for (const key of list) {
         store.delete(key);
       }
+    },
+    async clear() {
+      store.clear();
     }
   };
 }
@@ -82,6 +85,123 @@ export function createChromeAttachmentStorageAdapter(storageArea) {
           resolve();
         });
       });
+    },
+    async clear() {
+      const entries = await this.get(null);
+      const keys = Object.keys(entries || {});
+      if (!keys.length) {
+        return;
+      }
+
+      await this.remove(keys);
+    }
+  };
+}
+
+function getActionIdFromStorageKey(storageKey) {
+  return String(storageKey || "").replace(/^monitorAttachment:/, "");
+}
+
+export function createIndexedDbAttachmentStorageAdapter(indexedDbBackend) {
+  if (!indexedDbBackend) {
+    throw new Error("missing_indexeddb_backend");
+  }
+
+  return {
+    async get(keys) {
+      if (keys == null) {
+        const records = await indexedDbBackend.getAll();
+        return Object.fromEntries(
+          (records || []).map((record) => [getAttachmentStorageKey(record.actionId), record])
+        );
+      }
+
+      const list = Array.isArray(keys) ? keys : [keys];
+      const result = {};
+      for (const key of list) {
+        const record = await indexedDbBackend.get(getActionIdFromStorageKey(key));
+        if (record) {
+          result[key] = record;
+        }
+      }
+      return result;
+    },
+    async set(entries) {
+      for (const [storageKey, value] of Object.entries(entries || {})) {
+        await indexedDbBackend.put({
+          ...value,
+          actionId: value?.actionId || getActionIdFromStorageKey(storageKey)
+        });
+      }
+    },
+    async remove(keys) {
+      const list = Array.isArray(keys) ? keys : [keys];
+      for (const key of list) {
+        await indexedDbBackend.delete(getActionIdFromStorageKey(key));
+      }
+    },
+    async clear() {
+      await indexedDbBackend.clear();
+    }
+  };
+}
+
+export function createIndexedDbBackedAttachmentStorageAdapter({
+  indexedDbAdapter,
+  legacyAdapter = null
+}) {
+  if (!indexedDbAdapter) {
+    throw new Error("missing_indexeddb_adapter");
+  }
+
+  return {
+    async get(keys) {
+      if (keys == null) {
+        const [primaryEntries, legacyEntries] = await Promise.all([
+          indexedDbAdapter.get(null),
+          legacyAdapter ? legacyAdapter.get(null) : {}
+        ]);
+
+        return {
+          ...(legacyEntries || {}),
+          ...(primaryEntries || {})
+        };
+      }
+
+      const list = Array.isArray(keys) ? keys : [keys];
+      const primaryEntries = await indexedDbAdapter.get(list);
+      const missingKeys = list.filter((key) => !(key in (primaryEntries || {})));
+      const legacyEntries = missingKeys.length && legacyAdapter
+        ? await legacyAdapter.get(missingKeys)
+        : {};
+
+      return {
+        ...(legacyEntries || {}),
+        ...(primaryEntries || {})
+      };
+    },
+    async set(entries) {
+      await indexedDbAdapter.set(entries);
+    },
+    async remove(keys) {
+      await indexedDbAdapter.remove(keys);
+      if (legacyAdapter) {
+        await legacyAdapter.remove(keys);
+      }
+    },
+    async clear() {
+      await indexedDbAdapter.clear();
+      if (legacyAdapter) {
+        if (typeof legacyAdapter.clear === "function") {
+          await legacyAdapter.clear();
+        } else {
+          const legacyEntries = await legacyAdapter.get(null);
+          const legacyKeys = Object.keys(legacyEntries || {});
+          if (legacyKeys.length) {
+            await legacyAdapter.remove(legacyKeys);
+          }
+        }
+      }
     }
   };
 }
@@ -134,4 +254,16 @@ export async function getAttachmentUsage(adapter) {
     totalBytes,
     keys
   };
+}
+
+export async function clearAllAttachments(adapter) {
+  if (typeof adapter?.clear === "function") {
+    await adapter.clear();
+    return;
+  }
+
+  const usage = await getAttachmentUsage(adapter);
+  if (usage.keys.length) {
+    await adapter.remove(usage.keys);
+  }
 }
