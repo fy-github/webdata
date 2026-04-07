@@ -1,4 +1,5 @@
 # Browser Action Monitor
+<img width="375" height="600" alt="image" src="https://github.com/user-attachments/assets/0fc37b16-e819-459d-b9d6-2ff40cd5f516" />
 
 浏览器操作监控工具，用于记录用户在网页上的操作，并将数据保存为适合 Agent / AI 训练使用的结构化格式。
 
